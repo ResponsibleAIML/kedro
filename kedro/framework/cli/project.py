@@ -110,8 +110,10 @@ def lint(
     click.secho(deprecation_message, fg="red")
 
     source_path = metadata.source_dir
+    project_path = metadata.project_path
     package_name = metadata.package_name
-    files = files or (str(source_path / "tests"), str(source_path / package_name))
+    # TODO: Detect whether tests are under project_path or source_path
+    files = files or (str(project_path / "tests"), str(source_path / package_name))
 
     if "PYTHONPATH" not in os.environ:
         # isort needs the source path to be in the 'PYTHONPATH' environment
@@ -147,7 +149,8 @@ def ipython(metadata: ProjectMetadata, env, args, **kwargs):  # noqa: unused-arg
 @click.pass_obj  # this will pass the metadata as first argument
 def package(metadata: ProjectMetadata):
     """Package the project as a Python wheel."""
-    source_path = metadata.source_dir
+    # TODO: Detect whether metadata is under project_path or source_path
+    project_path = metadata.project_path
     call(
         [
             sys.executable,
@@ -155,9 +158,9 @@ def package(metadata: ProjectMetadata):
             "build",
             "--wheel",
             "--outdir",
-            "../dist",
+            "dist",
         ],
-        cwd=str(source_path),
+        cwd=str(project_path),
     )
 
     directory = (
@@ -197,9 +200,11 @@ def build_docs(metadata: ProjectMetadata, open_docs):
     click.secho(deprecation_message, fg="red")
 
     source_path = metadata.source_dir
+    project_path = metadata.project_path
     package_name = metadata.package_name
 
-    python_call("pip", ["install", str(source_path / "[docs]")])
+    # TODO: Detect whether metadata is under project_path or source_path
+    python_call("pip", ["install", str(project_path / "[docs]")])
     python_call("pip", ["install", "-r", str(source_path / "requirements.txt")])
     python_call("ipykernel", ["install", "--user", f"--name={package_name}"])
     shutil.rmtree("docs/build", ignore_errors=True)
